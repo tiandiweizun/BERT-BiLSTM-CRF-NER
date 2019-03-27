@@ -526,13 +526,15 @@ def train(args):
 
     tokenizer = tokenization.FullTokenizer(
         vocab_file=args.vocab_file, do_lower_case=args.do_lower_case)
-
+    
     session_config = tf.ConfigProto(
-        log_device_placement=False,
+        log_device_placement=True,
         inter_op_parallelism_threads=0,
         intra_op_parallelism_threads=0,
-        allow_soft_placement=True)
+        allow_soft_placement=args.allow_soft_placement)
 
+    session_config.gpu_options.per_process_gpu_memory_fraction=args.per_process_gpu_memory_fraction
+           
     run_config = tf.estimator.RunConfig(
         model_dir=args.output_dir,
         save_summary_steps=500,
