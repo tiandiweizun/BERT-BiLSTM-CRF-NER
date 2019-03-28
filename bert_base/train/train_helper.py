@@ -73,6 +73,10 @@ def get_args_parser():
     group2.add_argument('-clean', type=bool, default=True)
     group2.add_argument('-device_map', type=str, default='0',
                         help='witch device using to train')
+    group2.add_argument('-allow_soft_placement', type=bool, default=True,
+                        help='if allocated divice not existed, tensorflow will allocate other divice')
+    group2.add_argument('-per_process_gpu_memory_fraction ', type=float, default=0.9,
+                        help='percent gpu to use')
 
     # add labels
     group2.add_argument('-label_list', type=str, default=None,
