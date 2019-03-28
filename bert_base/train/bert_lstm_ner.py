@@ -18,6 +18,7 @@ import numpy as np
 import tensorflow as tf
 import codecs
 import pickle
+import re
 
 from bert_base.train import tf_metrics
 from bert_base.bert import modeling
@@ -143,7 +144,7 @@ class NerProcessor(DataProcessor):
             labels = []
             for line in f:
                 contends = line.strip()
-                tokens = contends.split(' ')
+                tokens = re.split('\\s', contends)
                 if len(tokens) == 2:
                     words.append(tokens[0])
                     labels.append(tokens[-1])
