@@ -75,7 +75,7 @@ def get_args_parser():
                         help='witch device using to train')
     group2.add_argument('-allow_soft_placement', type=bool, default=True,
                         help='if allocated divice not existed, tensorflow will allocate other divice')
-    group2.add_argument('-per_process_gpu_memory_fraction ', type=float, default=0.9,
+    group2.add_argument('-per_process_gpu_memory_fraction', type=float, default=0.9,
                         help='percent gpu to use')
 
     # add labels
