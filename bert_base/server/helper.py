@@ -68,10 +68,10 @@ def get_args_parser():
     group1 = parser.add_argument_group('File Paths',
                                        'config the path, checkpoint and filename of a pretrained/fine-tuned BERT model')
 
-    group1.add_argument('-bert_model_dir', type=str, required=True,
+    group1.add_argument('-bert_model_dir', type=str,
                         help='chinese google bert model path')
 
-    group1.add_argument('-model_dir', type=str, required=True,
+    group1.add_argument('-model_dir', type=str,
                         help='directory of a pretrained BERT model')
     group1.add_argument('-model_pb_dir', type=str, default=None,
                         help='directory of a pretrained BERT model')

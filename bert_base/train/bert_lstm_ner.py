@@ -36,7 +36,6 @@ __all__ = ['__version__', 'DataProcessor', 'NerProcessor', 'write_tokens', 'conv
            'model_fn_builder', 'train']
 
 
-
 class DataProcessor(object):
     """Base class for data converters for sequence classification data sets."""
 
@@ -109,7 +108,7 @@ class NerProcessor(DataProcessor):
                 else:
                     # 否则通过传入的参数，按照逗号分割
                     self.labels = labels.split(',')
-                self.labels = set(self.labels) # to set
+                self.labels = set(self.labels)  # to set
             except Exception as e:
                 print(e)
         # 通过读取train文件获取标签的方法会出现一定的风险。
@@ -122,7 +121,8 @@ class NerProcessor(DataProcessor):
                 with codecs.open(os.path.join(self.output_dir, 'label_list.pkl'), 'wb') as rf:
                     pickle.dump(self.labels, rf)
             else:
-                self.labels = ["O", 'B-TIM', 'I-TIM', "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "X", "[CLS]", "[SEP]"]
+                self.labels = ["O", 'B-TIM', 'I-TIM', "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "X",
+                               "[CLS]", "[SEP]"]
         return self.labels
 
     def _create_example(self, lines, set_type):
@@ -203,6 +203,10 @@ def convert_single_example(ex_index, example, label_list, max_seq_length, tokeni
     if not os.path.exists(os.path.join(output_dir, 'label2id.pkl')):
         with codecs.open(os.path.join(output_dir, 'label2id.pkl'), 'wb') as w:
             pickle.dump(label_map, w)
+    if not os.path.exists(os.path.join(output_dir, "id2label.txt")):
+        with codecs.open(os.path.join(output_dir, 'id2label.txt'), mode='w', encoding="utf-8") as w:
+            for (i, label) in enumerate(label_list, 1):
+                w.write(str(i) + "\t" + label + "\n")
 
     textlist = example.text.split(' ')
     labellist = example.label.split(' ')
@@ -283,7 +287,7 @@ def convert_single_example(ex_index, example, label_list, max_seq_length, tokeni
 
 
 def filed_based_convert_examples_to_features(
-        examples, label_list, max_seq_length, tokenizer, output_file, output_dir, mode=None):
+    examples, label_list, max_seq_length, tokenizer, output_file, output_dir, mode=None):
     """
     将数据转化为TF_Record 结构，作为模型数据输入
     :param examples:  样本
@@ -389,8 +393,8 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         # 加载BERT模型
         if init_checkpoint:
             (assignment_map, initialized_variable_names) = \
-                 modeling.get_assignment_map_from_checkpoint(tvars,
-                                                             init_checkpoint)
+                modeling.get_assignment_map_from_checkpoint(tvars,
+                                                            init_checkpoint)
             tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
         # 打印变量名
@@ -406,9 +410,9 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
 
         output_spec = None
         if mode == tf.estimator.ModeKeys.TRAIN:
-            #train_op = optimizer.optimizer(total_loss, learning_rate, num_train_steps)
+            # train_op = optimizer.optimizer(total_loss, learning_rate, num_train_steps)
             train_op = optimization.create_optimizer(
-                 total_loss, learning_rate, num_train_steps, num_warmup_steps, False)
+                total_loss, learning_rate, num_train_steps, num_warmup_steps, False)
             hook_dict = {}
             hook_dict['loss'] = total_loss
             hook_dict['global_steps'] = tf.train.get_or_create_global_step()
@@ -519,7 +523,7 @@ def train(args):
                 print('pleace remove the files of output dir and data.conf')
                 exit(-1)
 
-    #check output dir exists
+    # check output dir exists
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
@@ -527,20 +531,20 @@ def train(args):
 
     tokenizer = tokenization.FullTokenizer(
         vocab_file=args.vocab_file, do_lower_case=args.do_lower_case)
-    
+
     session_config = tf.ConfigProto(
-        log_device_placement=True,
+        log_device_placement=False,
         inter_op_parallelism_threads=0,
         intra_op_parallelism_threads=0,
         allow_soft_placement=args.allow_soft_placement)
 
-    session_config.gpu_options.per_process_gpu_memory_fraction=args.per_process_gpu_memory_fraction
-           
+    session_config.gpu_options.per_process_gpu_memory_fraction = args.per_process_gpu_memory_fraction
+
     run_config = tf.estimator.RunConfig(
         model_dir=args.output_dir,
         save_summary_steps=500,
         save_checkpoints_steps=500,
-        session_config=session_config
+        session_config=session_config,
     )
 
     train_examples = None
@@ -552,7 +556,7 @@ def train(args):
         # 加载训练数据
         train_examples = processor.get_train_examples(args.data_dir)
         num_train_steps = int(
-            len(train_examples) *1.0 / args.batch_size * args.num_train_epochs)
+            len(train_examples) * 1.0 / args.batch_size * args.num_train_epochs)
         if num_train_steps < 1:
             raise AttributeError('training data is so small...')
         num_warmup_steps = int(num_train_steps * args.warmup_proportion)
@@ -702,4 +706,3 @@ def train(args):
     # filter model
     if args.filter_adam_var:
         adam_filter(args.output_dir)
-

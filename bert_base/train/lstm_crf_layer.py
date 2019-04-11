@@ -60,6 +60,15 @@ class BLSTM_CRF(object):
         loss, trans = self.crf_layer(logits)
         # CRF decode, pred_ids 是一条最大概率的标注路径
         pred_ids, _ = crf.crf_decode(potentials=logits, transition_params=trans, sequence_length=self.lengths)
+
+        # from tensorflow.python.framework import dtypes
+        # loss = None
+        # trans = None
+        # if self.labels is not None:
+        #     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=self.labels)
+        #     loss = tf.reduce_mean(loss)
+        # pred_ids = tf.argmax(logits, 2, output_type=dtypes.int32)
+
         return (loss, logits, trans, pred_ids)
 
     def _witch_cell(self):

@@ -9,17 +9,43 @@
 import time
 from bert_base.client import BertClient
 
+# client = BertClient(show_server_config=False, check_version=False, check_length=False, mode='NER')
+# with open("", encoding="utf-8") as f:
+#     lines = f.readlines()
+# words = []
+# lables = []
+# with open("",encoding="utf-8") as wf:
+#     for line in lines:
+#         split = line.strip().split("\\s")
+#         if len(split) == 0:
+#             query = "".join(words)
+#             result = client.encode([list(query)], is_tokenized=True)
+#             assert len(words)==len(lables)
+#             assert len(words)==len(result)
+#
+#             words.clear()
+#             lables.clear()
+bc = BertClient(show_server_config=False, check_version=False, check_length=False, mode='NER')
+
+
+def ner_test_sen(sen):
+    str1 = sen
+    # rst = bc.encode([list(str1)], is_tokenized=True)
+    str1 = [list(str1)]
+    rst = bc.encode(str1, is_tokenized=True)
+    # print('rst:', rst)
+    # print(len(rst[0]))
+    return str1, rst
+
 
 def ner_test():
-    with BertClient(show_server_config=False, check_version=False, check_length=False, mode='NER') as bc:
-        start_t = time.perf_counter()
-        str1 = '1月24日，新华社对外发布了中央对雄安新区的指导意见，洋洋洒洒1.2万多字，17次提到北京，4次提到天津，信息量很大，其实也回答了人们关心的很多问题。'
-        # rst = bc.encode([list(str1)], is_tokenized=True)
-        # str1 = list(str1)
-        rst = bc.encode([str1], is_tokenized=True)
-        print('rst:', rst)
-        print(len(rst[0]))
-        print(time.perf_counter() - start_t)
+    start_t = time.perf_counter()
+    str1, rst = ner_test_sen("红米脑特45年买的,电源按键不好用了,属于报修吗")
+    for i in range(len(str1)):
+        for j in range(len(str1[i])):
+            print(str1[i][j] + "\t" + rst[i][j])
+        print()
+    print(time.perf_counter() - start_t)
 
 
 def ner_cu_seg():
@@ -47,7 +73,31 @@ def class_test():
         print('time used:{}'.format(time.perf_counter() - start_t))
 
 
+def terminal_client():
+    while True:
+        print('input the test sentence:')
+        sentence = str(input())
+        start_t = time.perf_counter()
+        str1, rst = ner_test_sen(sentence)
+        for i in range(len(str1)):
+            for j in range(len(str1[i])):
+                print(str1[i][j] + "\t" + rst[i][j])
+            print()
+        print(time.perf_counter() - start_t)
+
+
+def get_args_parser():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-mode', type=str, default="ner", help='ner/seg/class/ner_client')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    # class_test()
-    ner_test()
-    ner_cu_seg()
+    args = get_args_parser()
+    if args.mode == "ner_client":
+        terminal_client()
+    else:
+        # class_test()
+        ner_test()
+        # ner_cu_seg()
