@@ -545,6 +545,7 @@ def train(args):
         save_summary_steps=500,
         save_checkpoints_steps=500,
         session_config=session_config,
+        keep_checkpoint_max=1
     )
 
     train_examples = None
