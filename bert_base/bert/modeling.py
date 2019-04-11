@@ -25,7 +25,7 @@ import math
 import re
 import six
 import tensorflow as tf
-
+import operator
 
 class BertConfig(object):
   """Configuration for `BertModel`."""
@@ -335,6 +335,8 @@ def get_assignment_map_from_checkpoint(tvars, init_checkpoint):
       try:
           (name, var) = (x[0], x[1])
           if name not in name_to_variable:
+              continue
+          if not operator.eq(name_to_variable[name].shape.as_list(),x[1]):
               continue
           assignment_map[name] = name
           initialized_variable_names[name] = 1
