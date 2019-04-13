@@ -20,9 +20,11 @@ from __future__ import print_function
 
 import collections
 import random
+import time
 
 import tokenization
 import tensorflow as tf
+
 
 flags = tf.flags
 
@@ -186,14 +188,18 @@ def create_training_instances(input_files, tokenizer, max_seq_length,
   # (2) Blank lines between documents. Document boundaries are needed so
   # that the "next sentence prediction" task doesn't span between documents.
   for input_file in input_files:
-    tf.logging.info("process  %s", input_file)
+    start = time.time()
+    start_per_step=start
+    tf.logging.info("process:%s", input_file)
     line_num = 0
     with tf.gfile.GFile(input_file, "r") as reader:
       while True:
         line = tokenization.convert_to_unicode(reader.readline())
         line_num += 1
         if line_num % 10000 == 0:
-          tf.logging.info("process  %s  %d", input_file , line_num)
+          cost_per_step = time.time()-start_per_step
+          start_per_step = time.time()
+          tf.logging.info("cost:%f\tline_num:%d", cost_per_step , line_num)
         if not line:
           break
         line = line.strip()
@@ -204,7 +210,8 @@ def create_training_instances(input_files, tokenizer, max_seq_length,
         tokens = tokenizer.tokenize(line)
         if tokens:
           all_documents[-1].append(tokens)
-
+    cost = time.time()-start
+    tf.logging.info("processed:%s\tfloat:%d", input_file,cost)
   # Remove empty documents
   all_documents = [x for x in all_documents if x]
   rng.shuffle(all_documents)
