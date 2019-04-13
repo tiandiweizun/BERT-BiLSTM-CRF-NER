@@ -417,6 +417,18 @@ def main(_):
   for input_pattern in FLAGS.input_file.split(","):
     input_files.extend(tf.gfile.Glob(input_pattern))
 
+  files=[]
+  files.extend(input_files)
+  input_files.clear()
+  while len(files) > 0:
+      file = files[-1]
+      if tf.gfile.IsDirectory(file):
+          for sub_file in tf.gfile.ListDirectory(file):
+              files.insert(0, file + "/" + sub_file)
+      else:
+          input_files.append(file)
+      files.pop(-1)
+
   tf.logging.info("*** Input Files ***")
   for input_file in input_files:
     tf.logging.info("  %s" % input_file)

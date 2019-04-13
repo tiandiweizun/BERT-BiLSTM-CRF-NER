@@ -211,7 +211,7 @@ def create_training_instances(input_files, tokenizer, max_seq_length,
         if tokens:
           all_documents[-1].append(tokens)
     cost = time.time()-start
-    tf.logging.info("processed:%s\tfloat:%d", input_file,cost)
+    tf.logging.info("processed:%s\tcost:%d", input_file,cost)
   # Remove empty documents
   all_documents = [x for x in all_documents if x]
   rng.shuffle(all_documents)
