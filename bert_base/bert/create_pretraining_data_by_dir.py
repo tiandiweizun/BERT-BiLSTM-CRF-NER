@@ -67,8 +67,9 @@ def process():
                 while True:
                     is_break = False
                     for i in range(len(threads) - 1, -1, -1):
-                        threads.pop(i)
-                        is_break = True
+                        if threads[i].finished:
+                            threads.pop(i)
+                            is_break = True
                     if is_break:
                         break
                     time.sleep(args.sleep)
