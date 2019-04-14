@@ -144,7 +144,7 @@ def write_instance_to_example_files(instances, tokenizer, max_seq_length,
 
     total_written += 1
 
-    if inst_index < 20:
+    if inst_index < 2:
       tf.logging.info("*** Example ***")
       tf.logging.info("tokens: %s" % " ".join(
           [tokenization.printable_text(x) for x in instance.tokens]))
