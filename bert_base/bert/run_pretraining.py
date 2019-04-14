@@ -46,6 +46,10 @@ flags.DEFINE_string(
     "init_checkpoint", None,
     "Initial checkpoint (usually from a pre-trained BERT model).")
 
+flags.DEFINE_string(
+    "gpu", "",
+    "which gpu to use to train model")
+
 flags.DEFINE_integer(
     "max_seq_length", 128,
     "The maximum total input sequence length after WordPiece tokenization. "
@@ -405,7 +409,8 @@ def _decode_record(record, name_to_features):
 
 def main(_):
   tf.logging.set_verbosity(tf.logging.INFO)
-
+  if len(FLAGS.gpu) > 0:
+      os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu
   if not FLAGS.do_train and not FLAGS.do_eval:
     raise ValueError("At least one of `do_train` or `do_eval` must be True.")
 
