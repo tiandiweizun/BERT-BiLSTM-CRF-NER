@@ -9,8 +9,10 @@
 
 import argparse
 import os
+from bert_base import str2bool
 
 __all__ = ['get_args_parser']
+
 
 def get_args_parser():
     from .bert_lstm_ner import __version__
@@ -37,11 +39,11 @@ def get_args_parser():
     group2 = parser.add_argument_group('Model Config', 'config the model params')
     group2.add_argument('-max_seq_length', type=int, default=128,
                         help='The maximum total input sequence length after WordPiece tokenization.')
-    group2.add_argument('-do_train', action='store_false', default=True,
+    group2.add_argument('-do_train', type=str2bool, default=True,
                         help='Whether to run training.')
-    group2.add_argument('-do_eval', action='store_false', default=True,
+    group2.add_argument('-do_eval', type=str2bool, default=True,
                         help='Whether to run eval on the dev set.')
-    group2.add_argument('-do_predict', action='store_false', default=True,
+    group2.add_argument('-do_predict', type=str2bool, default=True,
                         help='Whether to run the predict in inference mode on the test set.')
     group2.add_argument('-batch_size', type=int, default=64,
                         help='Total batch size for training, eval and predict.')
@@ -66,14 +68,14 @@ def get_args_parser():
                         help='save_checkpoints_steps')
     group2.add_argument('-save_summary_steps', type=int, default=500,
                         help='save_summary_steps.')
-    group2.add_argument('-filter_adam_var', type=bool, default=False,
+    group2.add_argument('-filter_adam_var', type=str2bool, default=False,
                         help='after training do filter Adam params from model and save no Adam params model in file.')
-    group2.add_argument('-do_lower_case', type=bool, default=True,
+    group2.add_argument('-do_lower_case', type=str2bool, default=True,
                         help='Whether to lower case the input text.')
-    group2.add_argument('-clean', type=bool, default=True)
+    group2.add_argument('-clean', type=str2bool, default=True)
     group2.add_argument('-device_map', type=str, default='0',
                         help='witch device using to train')
-    group2.add_argument('-allow_soft_placement', type=bool, default=True,
+    group2.add_argument('-allow_soft_placement', type=str2bool, default=True,
                         help='if allocated divice not existed, tensorflow will allocate other divice')
     group2.add_argument('-per_process_gpu_memory_fraction', type=float, default=0.9,
                         help='percent gpu to use')
@@ -82,7 +84,7 @@ def get_args_parser():
     group2.add_argument('-label_list', type=str, default=None,
                         help='User define labels， can be a file with one label one line or a string using \',\' split')
 
-    parser.add_argument('-verbose', action='store_true', default=False,
+    parser.add_argument('-verbose', type=str2bool, default=False,
                         help='turn on tensorflow logging for debug')
     parser.add_argument('-ner', type=str, default='ner', help='which modle to train')
     parser.add_argument('-version', action='version', version='%(prog)s ' + __version__)

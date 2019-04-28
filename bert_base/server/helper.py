@@ -6,6 +6,7 @@ import uuid
 import pickle
 import zmq
 from zmq.utils import jsonapi
+from bert_base import str2bool
 
 __all__ = ['set_logger', 'send_ndarray', 'get_args_parser',
            'check_tf_version', 'auto_bind', 'import_tf']
@@ -94,7 +95,7 @@ def get_args_parser():
     group2.add_argument('-pooling_strategy', type=PoolingStrategy.from_string,
                         default=PoolingStrategy.REDUCE_MEAN, choices=list(PoolingStrategy),
                         help='the pooling strategy for generating encoding vectors')
-    group2.add_argument('-mask_cls_sep', action='store_true', default=False,
+    group2.add_argument('-mask_cls_sep', type=str2bool, default=False,
                         help='masking the embedding on [CLS] and [SEP] with zero. \
                         When pooling_strategy is in {CLS_TOKEN, FIRST_TOKEN, SEP_TOKEN, LAST_TOKEN} \
                         then the embedding is preserved, otherwise the embedding is masked to zero before pooling')
@@ -118,11 +119,11 @@ def get_args_parser():
     group3.add_argument('-priority_batch_size', type=int, default=16,
                         help='batch smaller than this size will be labeled as high priority,'
                              'and jumps forward in the job queue')
-    group3.add_argument('-cpu', action='store_true', default=False,
+    group3.add_argument('-cpu', type=str2bool, default=False,
                         help='running on CPU (default on GPU)')
-    group3.add_argument('-xla', action='store_true', default=False,
+    group3.add_argument('-xla', type=str2bool, default=False,
                         help='enable XLA compiler (experimental)')
-    group3.add_argument('-fp16', action='store_true', default=False,
+    group3.add_argument('-fp16', type=str2bool, default=False,
                         help='use float16 precision (experimental)')
     group3.add_argument('-gpu_memory_fraction', type=float, default=0.5,
                         help='determine the fraction of the overall amount of memory \
@@ -136,7 +137,7 @@ def get_args_parser():
                         help='the number of batches to prefetch on each worker. When running on a CPU-only machine, \
                         this is set to 0 for comparability')
 
-    parser.add_argument('-verbose', action='store_true', default=False,
+    parser.add_argument('-verbose', type=str2bool, default=False,
                         help='turn on tensorflow logging for debug')
     parser.add_argument('-mode', type=str, default='NER')
     parser.add_argument('-version', action='version', version='%(prog)s ' + __version__)
