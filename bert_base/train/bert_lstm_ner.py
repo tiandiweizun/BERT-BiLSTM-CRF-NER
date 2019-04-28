@@ -491,6 +491,8 @@ def adam_filter(model_path):
 
 
 def train(args):
+    tf.logging.set_verbosity(tf.logging.DEBUG if args.verbose else tf.logging.INFO)
+
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device_map
 
     processors = {
