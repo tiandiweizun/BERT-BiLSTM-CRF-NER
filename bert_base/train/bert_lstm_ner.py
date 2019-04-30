@@ -112,18 +112,22 @@ class NerProcessor(DataProcessor):
             except Exception as e:
                 print(e)
         # 通过读取train文件获取标签的方法会出现一定的风险。
+        label_list = []
         if os.path.exists(os.path.join(self.output_dir, 'label_list.pkl')):
             with codecs.open(os.path.join(self.output_dir, 'label_list.pkl'), 'rb') as rf:
-                self.labels = pickle.load(rf)
+                label_list = pickle.load(rf)
+                self.labels = set(label_list)
         else:
             if len(self.labels) > 0:
                 self.labels = self.labels.union(set(["X", "[CLS]", "[SEP]"]))
-                with codecs.open(os.path.join(self.output_dir, 'label_list.pkl'), 'wb') as rf:
-                    pickle.dump(self.labels, rf)
             else:
                 self.labels = ["O", 'B-TIM', 'I-TIM', "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "X",
                                "[CLS]", "[SEP]"]
-        return self.labels
+            label_list = list(self.labels)
+            label_list.sort()
+            with codecs.open(os.path.join(self.output_dir, 'label_list.pkl'), 'wb') as rf:
+                pickle.dump(label_list, rf)
+        return label_list
 
     def _create_example(self, lines, set_type):
         examples = []
@@ -183,30 +187,30 @@ def write_tokens(tokens, output_dir, mode):
         wf.close()
 
 
-def convert_single_example(ex_index, example, label_list, max_seq_length, tokenizer, output_dir, mode):
+def convert_single_example(ex_index, example, label2id, max_seq_length, tokenizer, output_dir, mode):
     """
     将一个样本进行分析，然后将字转化为id, 标签转化为id,然后结构化到InputFeatures对象中
     :param ex_index: index
     :param example: 一个样本
-    :param label_list: 标签列表
+    :param label2id: 标签列表
     :param max_seq_length:
     :param tokenizer:
     :param output_dir
     :param mode:
     :return:
     """
-    label_map = {}
-    # 1表示从1开始对label进行index化
-    for (i, label) in enumerate(label_list, 1):
-        label_map[label] = i
-    # 保存label->index 的map
-    if not os.path.exists(os.path.join(output_dir, 'label2id.pkl')):
-        with codecs.open(os.path.join(output_dir, 'label2id.pkl'), 'wb') as w:
-            pickle.dump(label_map, w)
-    if not os.path.exists(os.path.join(output_dir, "id2label.txt")):
-        with codecs.open(os.path.join(output_dir, 'id2label.txt'), mode='w', encoding="utf-8") as w:
-            for (i, label) in enumerate(label_list, 1):
-                w.write(str(i) + "\t" + label + "\n")
+    # label2id = {}
+    # # 1表示从1开始对label进行index化
+    # for (i, label) in enumerate(label_list, 1):
+    #     label2id[label] = i
+    # # 保存label->index 的map
+    # if not os.path.exists(os.path.join(output_dir, 'label2id.pkl')):
+    #     with codecs.open(os.path.join(output_dir, 'label2id.pkl'), 'wb') as w:
+    #         pickle.dump(label_map, w)
+    # if not os.path.exists(os.path.join(output_dir, "id2label.txt")):
+    #     with codecs.open(os.path.join(output_dir, 'id2label.txt'), mode='w', encoding="utf-8") as w:
+    #         for (i, label) in enumerate(label_list, 1):
+    #             w.write(str(i) + "\t" + label + "\n")
 
     textlist = example.text.split(' ')
     labellist = example.label.split(' ')
@@ -233,15 +237,15 @@ def convert_single_example(ex_index, example, label_list, max_seq_length, tokeni
     ntokens.append("[CLS]")  # 句子开始设置CLS 标志
     segment_ids.append(0)
     # append("O") or append("[CLS]") not sure!
-    label_ids.append(label_map["[CLS]"])  # O OR CLS 没有任何影响，不过我觉得O 会减少标签个数,不过拒收和句尾使用不同的标志来标注，使用LCS 也没毛病
+    label_ids.append(label2id["[CLS]"])  # O OR CLS 没有任何影响，不过我觉得O 会减少标签个数,不过拒收和句尾使用不同的标志来标注，使用LCS 也没毛病
     for i, token in enumerate(tokens):
         ntokens.append(token)
         segment_ids.append(0)
-        label_ids.append(label_map[labels[i]])
+        label_ids.append(label2id[labels[i]])
     ntokens.append("[SEP]")  # 句尾添加[SEP] 标志
     segment_ids.append(0)
     # append("O") or append("[SEP]") not sure!
-    label_ids.append(label_map["[SEP]"])
+    label_ids.append(label2id["[SEP]"])
     input_ids = tokenizer.convert_tokens_to_ids(ntokens)  # 将序列中的字(ntokens)转化为ID形式
     input_mask = [1] * len(input_ids)
     # label_mask = [1] * len(input_ids)
@@ -287,11 +291,11 @@ def convert_single_example(ex_index, example, label_list, max_seq_length, tokeni
 
 
 def filed_based_convert_examples_to_features(
-    examples, label_list, max_seq_length, tokenizer, output_file, output_dir, mode=None):
+    examples, label_map, max_seq_length, tokenizer, output_file, output_dir, mode=None):
     """
     将数据转化为TF_Record 结构，作为模型数据输入
     :param examples:  样本
-    :param label_list:标签list
+    :param label_map:标签map
     :param max_seq_length: 预先设定的最大序列长度
     :param tokenizer: tokenizer 对象
     :param output_file: tf.record 输出路径
@@ -304,7 +308,7 @@ def filed_based_convert_examples_to_features(
         if ex_index % 5000 == 0:
             tf.logging.info("Writing example %d of %d" % (ex_index, len(examples)))
         # 对于每一个训练样本,
-        feature = convert_single_example(ex_index, example, label_list, max_seq_length, tokenizer, output_dir, mode)
+        feature = convert_single_example(ex_index, example, label_map, max_seq_length, tokenizer, output_dir, mode)
 
         def create_int_feature(values):
             f = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
@@ -577,6 +581,20 @@ def train(args):
         tf.logging.info("  Batch size = %d", args.batch_size)
 
     label_list = processor.get_labels()
+    label2id = {}
+    id2label = {}
+    # 1表示从1开始对label进行index化
+    for (i, label) in enumerate(label_list, 1):
+        label2id[label] = i
+        id2label[i] = label
+    # 保存label->index 的map
+    if not os.path.exists(os.path.join(args.output_dir, 'label2id.pkl')):
+        with codecs.open(os.path.join(args.output_dir, 'label2id.pkl'), 'wb') as w:
+            pickle.dump(label2id, w)
+    if not os.path.exists(os.path.join(args.output_dir, "id2label.txt")):
+        with codecs.open(os.path.join(args.output_dir, 'id2label.txt'), mode='w', encoding="utf-8") as w:
+            for (i, label) in enumerate(label_list, 1):
+                w.write(str(i) + "\t" + label + "\n")
     # 返回的model_dn 是一个函数，其定义了模型，训练，评测方法，并且使用钩子参数，加载了BERT模型的参数进行了自己模型的参数初始化过程
     # tf 新的架构方法，通过定义model_fn 函数，定义模型，然后通过EstimatorAPI进行模型的其他工作，Es就可以控制模型的训练，预测，评估工作等。
     model_fn = model_fn_builder(
@@ -602,7 +620,7 @@ def train(args):
         train_file = os.path.join(args.output_dir, "train.tf_record")
         if not os.path.exists(train_file):
             filed_based_convert_examples_to_features(
-                train_examples, label_list, args.max_seq_length, tokenizer, train_file, args.output_dir)
+                train_examples, label2id, args.max_seq_length, tokenizer, train_file, args.output_dir)
 
         # 2.读取record 数据，组成batch
         train_input_fn = file_based_input_fn_builder(
@@ -615,7 +633,7 @@ def train(args):
         eval_file = os.path.join(args.output_dir, "eval.tf_record")
         if not os.path.exists(eval_file):
             filed_based_convert_examples_to_features(
-                eval_examples, label_list, args.max_seq_length, tokenizer, eval_file, args.output_dir)
+                eval_examples, label2id, args.max_seq_length, tokenizer, eval_file, args.output_dir)
 
         eval_input_fn = file_based_input_fn_builder(
             input_file=eval_file,
@@ -644,13 +662,13 @@ def train(args):
         if os.path.exists(token_path):
             os.remove(token_path)
 
-        with codecs.open(os.path.join(args.output_dir, 'label2id.pkl'), 'rb') as rf:
-            label2id = pickle.load(rf)
-            id2label = {value: key for key, value in label2id.items()}
+        # with codecs.open(os.path.join(args.output_dir, 'label2id.pkl'), 'rb') as rf:
+        #     label2id = pickle.load(rf)
+        #     id2label = {value: key for key, value in label2id.items()}
 
         predict_examples = processor.get_test_examples(args.data_dir)
         predict_file = os.path.join(args.output_dir, "predict.tf_record")
-        filed_based_convert_examples_to_features(predict_examples, label_list,
+        filed_based_convert_examples_to_features(predict_examples, label2id,
                                                  args.max_seq_length, tokenizer,
                                                  predict_file, args.output_dir, mode="test")
 
