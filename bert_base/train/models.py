@@ -90,7 +90,10 @@ def create_model(bert_config, is_training, input_ids, input_mask,
     )
     # 获取对应的embedding 输入数据[batch_size, seq_length, embedding_size]
     embedding = model.get_sequence_output()
-    max_seq_length = embedding.shape[1].value
+    # max_seq_length = embedding.shape[1].value
+    embedding_shape = modeling.get_shape_list(embedding, expected_rank=3)
+    max_seq_length = embedding_shape[1]
+
     # 算序列真实长度
     used = tf.sign(tf.abs(input_ids))
     lengths = tf.reduce_sum(used, reduction_indices=1)  # [batch_size] 大小的向量，包含了当前batch中的序列长度

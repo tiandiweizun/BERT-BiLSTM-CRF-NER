@@ -384,6 +384,16 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         segment_ids = features["segment_ids"]
         label_ids = features["label_ids"]
 
+        embedding_shape = modeling.get_shape_list(input_ids, expected_rank=2)
+
+        batch_size = embedding_shape[0]
+        seq_length = tf.reduce_max(tf.reduce_sum(input_mask, axis=1))
+
+        input_ids = tf.slice(input_ids, [0, 0], [batch_size, seq_length])
+        input_mask = tf.slice(input_mask, [0, 0], [batch_size, seq_length])
+        segment_ids = tf.slice(segment_ids, [0, 0], [batch_size, seq_length])
+        label_ids = tf.slice(label_ids, [0, 0], [batch_size, seq_length])
+
         print('shape of input_ids', input_ids.shape)
         # label_mask = features["label_mask"]
         is_training = (mode == tf.estimator.ModeKeys.TRAIN)
