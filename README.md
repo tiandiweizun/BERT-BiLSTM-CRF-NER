@@ -32,6 +32,8 @@ cd BERT-BiLSTM-CRF-NER/
 python3 setup.py install
 ```
 
+if you do not want to install, you just need clone this project and reference the file of <run.py> to train the model or start the service. 
+
 ## UPDATE:
 - 2019.2.25 Fix some bug for ner service
 - 2019.2.19: add text classification service
@@ -92,6 +94,7 @@ OR save label in a file like labels.txt, one line one label
 ```    
 
 After training model, the NER model will be saved in {output_dir} which you special above cmd line.  
+##### My Training environment：Tesla P40 24G mem  
 
 ## As Service
 Many server and client code comes from excellent open source projects: [bert as service of hanxiao](https://github.com/hanxiao/bert-as-service) If my code violates any license agreement, please let me know and I will correct it the first time.
@@ -175,6 +178,8 @@ you can see this after run the above code:
 
 Note that it can not start NER service and Text Classification service together. but you can using twice command line start ner service and text classification with different port.  
 
+## License
+MIT.  
 
 # The following tutorial is an old version and will be removed in the future.
 

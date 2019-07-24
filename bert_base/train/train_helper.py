@@ -37,7 +37,7 @@ def get_args_parser():
                         help='')
 
     group2 = parser.add_argument_group('Model Config', 'config the model params')
-    group2.add_argument('-max_seq_length', type=int, default=128,
+    group2.add_argument('-max_seq_length', type=int, default=202,
                         help='The maximum total input sequence length after WordPiece tokenization.')
     group2.add_argument('-do_train', type=str2bool, default=True,
                         help='Whether to run training.')

@@ -179,6 +179,7 @@ def convert_id_to_label(pred_ids_result, idx2label):
     return result
 
 
+
 def strage_combined_link_org_loc(tokens, tags):
     """
     组合策略
@@ -285,15 +286,12 @@ class Pair(object):
     @property
     def start(self):
         return self.__start
-
     @property
     def end(self):
         return self.__end
-
     @property
     def merge(self):
         return self.__merge
-
     @property
     def word(self):
         return self.__word
@@ -301,19 +299,15 @@ class Pair(object):
     @property
     def types(self):
         return self.__types
-
     @word.setter
     def word(self, word):
         self.__word = word
-
     @start.setter
     def start(self, start):
         self.__start = start
-
     @end.setter
     def end(self, end):
         self.__end = end
-
     @merge.setter
     def merge(self, merge):
         self.__merge = merge
@@ -339,7 +333,6 @@ class Result(object):
         self.loc = []
         self.org = []
         self.others = []
-
     def get_result(self, tokens, tags, config=None):
         # 先获取标注结果
         self.result_to_json(tokens, tags)
