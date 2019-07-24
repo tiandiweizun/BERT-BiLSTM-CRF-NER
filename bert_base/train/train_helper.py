@@ -86,6 +86,6 @@ def get_args_parser():
 
     parser.add_argument('-verbose', type=str2bool, default=False,
                         help='turn on tensorflow logging for debug')
-    parser.add_argument('-ner', type=str, default='ner', help='which modle to train')
+    parser.add_argument('-type', type=str, default='ner', help='which modle to train')
     parser.add_argument('-version', action='version', version='%(prog)s ' + __version__)
     return parser.parse_args()

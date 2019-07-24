@@ -282,6 +282,14 @@ def optimize_ner_model(args, num_labels,  logger=None):
                 input_ids = tf.placeholder(tf.int32, (None, args.max_seq_len), 'input_ids')
                 input_mask = tf.placeholder(tf.int32, (None, args.max_seq_len), 'input_mask')
 
+                embedding_shape = modeling.get_shape_list(input_ids, expected_rank=2)
+
+                batch_size = embedding_shape[0]
+                seq_length = tf.reduce_max(tf.reduce_sum(input_mask, axis=1))
+
+                input_ids = tf.slice(input_ids, [0, 0], [batch_size, seq_length])
+                input_mask = tf.slice(input_mask, [0, 0], [batch_size, seq_length])
+
                 bert_config = modeling.BertConfig.from_json_file(os.path.join(args.bert_model_dir, 'bert_config.json'))
                 from bert_base.train.models import create_model
                 (total_loss, logits, trans, pred_ids) = create_model(

@@ -543,7 +543,7 @@ def train(args):
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
-    processor = processors[args.ner](args.output_dir)
+    processor = processors[args.type](args.output_dir)
 
     tokenizer = tokenization.FullTokenizer(
         vocab_file=args.vocab_file, do_lower_case=args.do_lower_case)
@@ -558,8 +558,8 @@ def train(args):
 
     run_config = tf.estimator.RunConfig(
         model_dir=args.output_dir,
-        save_summary_steps=500,
-        save_checkpoints_steps=500,
+        save_summary_steps=args.save_summary_steps,
+        save_checkpoints_steps=args.save_checkpoints_steps,
         session_config=session_config,
         keep_checkpoint_max=1
     )
